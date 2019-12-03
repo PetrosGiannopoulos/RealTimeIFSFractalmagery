@@ -1,0 +1,19 @@
+﻿  FlameFractalGPU.cpp
+d:\χρήσιμα έγγραφα\flamefractalgpu\flamefractalgpu\flamefractalgpu\Graphics.h(119): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\flamefractalgpu\flamefractalgpu\flamefractalgpu\Graphics.h(154): warning C4244: 'argument': conversion from 'const int' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\flamefractalgpu\flamefractalgpu\flamefractalgpu\Graphics.h(155): warning C4244: 'argument': conversion from 'const int' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\flamefractalgpu\flamefractalgpu\flamefractalgpu\Graphics.h(169): warning C4244: 'argument': conversion from 'const int' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\flamefractalgpu\flamefractalgpu\flamefractalgpu\Graphics.h(170): warning C4244: 'argument': conversion from 'const int' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\flamefractalgpu\flamefractalgpu\flamefractalgpu\Graphics.h(219): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\flamefractalgpu\flamefractalgpu\flamefractalgpu\Graphics.h(220): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\flamefractalgpu\flamefractalgpu\flamefractalgpu\Graphics.h(224): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\flamefractalgpu\flamefractalgpu\flamefractalgpu\Graphics.h(225): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\flamefractalgpu\flamefractalgpu\flamefractalgpu\Graphics.h(227): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\χρήσιμα έγγραφα\flamefractalgpu\flamefractalgpu\flamefractalgpu\Graphics.h(228): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  Generating code
+  7 of 270 functions ( 2.6%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    12 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  FlameFractalGPU.vcxproj -> D:\Χρήσιμα Έγγραφα\FlameFractalGPU\FlameFractalGPU\x64\Release\FlameFractalGPU.exe
+  FlameFractalGPU.vcxproj -> D:\Χρήσιμα Έγγραφα\FlameFractalGPU\FlameFractalGPU\x64\Release\FlameFractalGPU.pdb (Full PDB)
