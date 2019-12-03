@@ -153,6 +153,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CShader.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="stb_image.h" />
@@ -172,8 +173,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="flameShader.fs" />
-    <None Include="flameShader.vs" />
+    <None Include="flameShader.glslcs" />
     <None Include="screenShader.fs" />
     <None Include="screenShader.vs" />
   </ItemGroup>

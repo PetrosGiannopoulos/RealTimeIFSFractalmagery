@@ -36,6 +36,9 @@
     <ClInclude Include="Graphics.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="CShader.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -58,10 +61,7 @@
     <None Include="screenShader.vs">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="flameShader.fs">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="flameShader.vs">
+    <None Include="flameShader.glslcs">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

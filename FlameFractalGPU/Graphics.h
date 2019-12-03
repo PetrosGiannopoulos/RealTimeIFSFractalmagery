@@ -4,6 +4,7 @@
 #include <GLFW\glfw3.h>
 
 #include "Shader.h"
+#include "CShader.h"
 
 #include "stb_image.h"
 
@@ -35,7 +36,8 @@ public:
 	float deltaTime = 0.0f;	// time between current frame and last frame
 	float lastFrame = 0.0f;
 
-	Shader screenShader,flameShader;
+	Shader screenShader;
+	CShader flameShader;
 
 	unsigned int flameBuffer;
 
@@ -80,35 +82,14 @@ public:
 		glEnable(GL_DEPTH_TEST);
 		glViewport(0, 0, mode->width, mode->height);
 
-		flameShader = Shader("flameShader.vs", "flameShader.fs");
+		flameShader = CShader("flameShader.glslcs");
+		displayScreenTexture = flameShader.createFrameBufferTexture();
 
 		screenShader = Shader("screenShader.vs", "screenShader.fs");
 		screenShader.use();
 		screenShader.setInt("displayScreenTexture", 0);
 
-		glGenFramebuffers(1, &flameBuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, flameBuffer);
-
-		glGenTextures(1, &displayScreenTexture);
-		glBindTexture(GL_TEXTURE_2D, displayScreenTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mode->width, mode->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, displayScreenTexture, 0);
-
-		unsigned int attachments[1] = { GL_COLOR_ATTACHMENT0};
-		glDrawBuffers(1, attachments);
-
-		unsigned int rboDepth;
-		glGenRenderbuffers(1, &rboDepth);
-		glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, mode->width, mode->height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
-
-		// finally check if framebuffer is complete
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			std::cout << "Framebuffer not complete!" << std::endl;
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		
 	}
 
 	void mainLoop() {
@@ -141,25 +122,40 @@ public:
 		}
 	}
 
+	int nextPowerOfTwo(int x) {
+		x--;
+		x |= x >> 1; // handle 2 bit numbers
+		x |= x >> 2; // handle 4 bit numbers
+		x |= x >> 4; // handle 8 bit numbers
+		x |= x >> 8; // handle 16 bit numbers
+		x |= x >> 16; // handle 32 bit numbers
+		x++;
+		return x;
+	}
+
 	void render() {
 
 		glViewport(0, 0, mode->width, mode->height);
-
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//render flame fractal
-		glBindFramebuffer(GL_FRAMEBUFFER, flameBuffer);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		flameShader.use();
 		flameShader.setFloat("width", mode->width);
 		flameShader.setFloat("height", mode->height);
+		flameShader.setFloat("time", time);
 
-		renderScreenQuad();
+		glBindImageTexture(0, displayScreenTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		unsigned int worksizeX = nextPowerOfTwo(mode->width);
+		unsigned int worksizeY = nextPowerOfTwo(mode->height);
 
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glDispatchCompute(worksizeX / 32, worksizeY / 32, 1);
+
+		/* Reset image binding. */
+		glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
 		screenShader.use();
 		
