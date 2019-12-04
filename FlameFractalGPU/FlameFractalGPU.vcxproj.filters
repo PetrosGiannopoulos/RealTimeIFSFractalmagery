@@ -64,5 +64,11 @@
     <None Include="flameShader.glslcs">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="clearShader.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="clearShader.vs">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

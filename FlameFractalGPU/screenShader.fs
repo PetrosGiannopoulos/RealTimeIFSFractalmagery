@@ -1,13 +1,9 @@
 #version 420 core
-#define MAX_BOXES 100
 
 out vec4 FragColor;
 
 in vec2 TexCoords;
 uniform sampler2D displayScreenTexture;
-
-uniform float width;
-uniform float height;
 
 void main()
 {
@@ -19,7 +15,11 @@ void main()
 
 	//TODO apply tone mapping 
 
-	col = (col)/(col+1);
+	//col = (col)/(col+1);
+	
+	
 
     FragColor = vec4(col, 1.0);
+
+	FragColor = pow(FragColor, vec4(1./2.2));
 } 

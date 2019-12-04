@@ -2,9 +2,165 @@
  
 layout(binding = 0, rgba32f) uniform image2D framebuffer;
 
-uniform float time; 
+uniform float time;
+uniform float a[10], b[10], c[10], d[10], e[10], f[10]; 
+uniform float w[11];
 
 const float PI = 3.14159265359;
+
+float getLinearX(vec2 pos, int index){
+	return a[index]*pos.x+b[index]*pos.y+c[index];
+}
+
+float getLinearY(vec2 pos, int index){
+	return d[index]*pos.x+e[index]*pos.y+f[index];
+}
+
+vec3 getColor(int ra){
+
+	vec3 col = vec3(0);
+	switch(ra){
+		case 0:
+			col = vec3(0.098, 0.095, 0.095);
+			return col;
+			break;
+		case 1:
+			col = vec3(0.4039,0.0237,0.0241);
+			return col;
+			break;
+		case 2:
+			col = vec3(0.5373, 0.02255, 0.02176);
+			return col;
+			break;
+		case 3:
+			col = vec3(0.6588, 0.02294, 0.02333);
+			return col;
+			break;
+		case 4:
+			col = vec3(0.8078, 0.3255, 0.0902);
+			return col;
+			break;
+		case 5:
+			col = vec3(0.8784, 0.4824, 0.0157);
+			return col;
+			break;
+		case 6:
+			col = vec3(0.8902, 0.6078, 0.0118);
+			return col;
+			break;
+		case 7:
+			col = vec3(0.8980, 0.7608, 0.0157);
+			return col;
+			break;
+		case 8:
+			col = vec3(0.9098, 0.8431, 0.1961);
+			return col;
+			break;
+		case 9:
+			col = vec3(0.9961, 0.9765, 0.8941);
+			return col;
+			break;
+		default:
+			break;
+	};
+}
+
+vec2 transform(vec2 pos, int ra, float r_, float a_){
+	vec2 newPos = pos;
+	switch(ra){
+		case 0:
+			return newPos*w[ra];
+			break;
+		case 1:
+			newPos.x = sin(pos.x);
+			newPos.y = sin(pos.y);
+			return newPos*w[ra];
+			break;
+		case 2:
+			newPos.x = pos.x/(r_*r_);
+			newPos.y = pos.y/(r_*r_);
+			return newPos*w[ra];
+			break;
+		case 3:
+			newPos.x = r_*cos(a_+r_);
+			newPos.y = r_*sin(a_-r_);
+			return newPos*w[ra];
+			break;
+		case 4:
+			newPos.x = r_*cos(2*a_);
+			newPos.y = r_*sin(2*a_);
+			return newPos*w[ra];
+			break;
+		case 5:
+			newPos.x = a_/PI;
+			newPos.y = r_-1;
+			return newPos*w[ra];
+			break;
+		case 6:
+			newPos.x = r_*sin(a_+r_);
+			newPos.y = r_*cos(a_-r_);
+			return newPos*w[ra];
+			break;
+		case 7:
+			newPos.x =  r_*sin(a_*r_);
+			newPos.y = -r_*cos(a_*r_);
+			return newPos*w[ra];
+			break;
+		case 8:
+			newPos.x = a_/PI*sin(PI*r_);
+			newPos.y = a_/PI*cos(PI*r_);
+			return newPos*w[ra];
+			break;
+		case 9:
+			newPos.x = pos.x*sin(r_*r_)-pos.y*cos(r_*r_);
+			newPos.y = pos.x*cos(r_*r_)+pos.y*sin(r_*r_);
+			return newPos*w[ra];
+			break;
+		case 10:
+			newPos.x = cos(pos.x)/pos.y;
+			newPos.y = sin(pos.x)/pos.y;
+			return newPos*w[ra];
+			break;
+		default:
+			break;
+	};
+}
+
+vec2 calcNonLinearXY(vec2 pos){
+
+	float r_ = length(pos);
+	float a_ = atan(pos.y,pos.x);
+
+	vec2 newPos = vec2(0);
+	
+	for(int i=0;i<11;i++){
+		newPos += transform(pos, i, r_, a_);
+	}
+
+	return newPos;
+}
+
+float hash( uint n ) 
+{   // integer hash copied from Hugo Elias
+	n = (n<<13U)^n; 
+    n = n*(n*n*15731U+789221U)+1376312589U;
+    return float(n&uvec3(0x0fffffffU))/float(0x0fffffff);
+}
+
+// Basic noise
+float bnoise( in float x )
+{
+    float i = floor(x);
+    float f = fract(x);
+    float s = sign(fract(x/2.0)-0.5);
+    
+    // use some hash to create a random value k in [0..1] from i
+    float k = hash(uint(i));
+  //float k = 0.5+0.5*sin(i);
+  //float k = fract(i*.1731);
+
+    return s*f*(f-1.0)*((16.0*k-4.0)*f*(f-1.0)-1.0);
+}
 
 layout (local_size_x = 32, local_size_y = 32) in;
 
@@ -14,14 +170,41 @@ void main(void) {
     if (pix.x >= size.x || pix.y >= size.y) {
         return;
     }
-    vec2 pos = vec2(pix) / vec2(size.x - 1, size.y - 1);
+    vec2 pos = vec2(pix) / vec2(size.x-1,size.y-1);
     vec2 pixel = vec2(pix);
 
-	vec4 pColor = vec4(1,0,0,1);
+	vec4 pColor = vec4(getColor(3),1);
 
-	vec2 coord = vec2(pix);
+	vec2 coord = pos*2-1;
+	vec2 finalCoord = coord;
 
-	pix = ivec2(coord);
+	//chaos game
+	int k = 32;
+
+	for(int i=0;i<k;i++){
+		
+		float randV = bnoise(coord.x);
+
+		int randIndex = int(floor(randV*10));
+
+		vec2 linXY = vec2(getLinearX(coord,randIndex),getLinearY(coord,randIndex))+time;
+		finalCoord = calcNonLinearXY(linXY);
+
+		//if(finalCoord.x<-1 || finalCoord.x>1)continue;
+		//if(finalCoord.y<-1 || finalCoord.y>1)continue;
+
+		vec3 finalColor = getColor(randIndex);
+
+		pColor = 0.5*(pColor+ vec4(finalColor,1));
+
+		coord = finalCoord;
+	}
+
+	finalCoord *= 0.1;
+	
+	pix = ivec2((finalCoord*0.5+0.5)*vec2(size.x,size.y));
+
+	
 
 	imageStore(framebuffer, pix, pColor);
 }

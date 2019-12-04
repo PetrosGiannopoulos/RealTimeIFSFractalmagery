@@ -13,6 +13,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
+#include <random>
 
 #include <omp.h>
 
@@ -36,12 +37,16 @@ public:
 	float deltaTime = 0.0f;	// time between current frame and last frame
 	float lastFrame = 0.0f;
 
-	Shader screenShader;
+	Shader screenShader, clearShader;
 	CShader flameShader;
 
 	unsigned int flameBuffer;
+	unsigned int clearFBO;
 
 	float time = 0;
+
+	float parA[10], parB[10], parC[10], parD[10], parE[10], parF[10];
+	float weights[11];
 
 	~Graphics() {
 		delete this;
@@ -83,13 +88,53 @@ public:
 		glViewport(0, 0, mode->width, mode->height);
 
 		flameShader = CShader("flameShader.glslcs");
-		displayScreenTexture = flameShader.createFrameBufferTexture();
+		displayScreenTexture = flameShader.createFrameBufferTexture(mode->width,mode->height);
 
 		screenShader = Shader("screenShader.vs", "screenShader.fs");
 		screenShader.use();
 		screenShader.setInt("displayScreenTexture", 0);
 
-		
+		clearShader = Shader("clearShader.vs", "clearShader.fs");
+
+		glGenFramebuffers(1, &clearFBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, clearFBO);
+		glBindTexture(GL_TEXTURE_2D, displayScreenTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mode->width, mode->height, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, displayScreenTexture, 0);
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "SSAO Blur Framebuffer not complete!" << std::endl;
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+		for (int i = 0; i < 10;i++) {
+			parA[i] = getRandomFloat(-1, 1);
+			parB[i] = getRandomFloat(-1, 1);
+			parC[i] = getRandomFloat(-1, 1);
+			parD[i] = getRandomFloat(-1, 1);
+			parE[i] = getRandomFloat(-1, 1);
+			parF[i] = getRandomFloat(-1, 1);
+		}
+
+		for (int i = 0; i < 11; i++) { weights[i] = getRandomFloat(-1, 1); }
+	}
+
+	float getRandomFloat(float min, float max) {
+
+		std::random_device rd; // obtain a random number from hardware
+		std::mt19937 eng(rd()); // seed the generator
+		std::uniform_real_distribution<> distr(min, max);
+
+		return distr(eng);
+	}
+
+	int getRandomInt(int min, int max) {
+		std::random_device rd; // obtain a random number from hardware
+		std::mt19937 eng(rd()); // seed the generator
+		std::uniform_int_distribution<> distr(min, max);
+
+		return distr(eng);
 	}
 
 	void mainLoop() {
@@ -118,7 +163,7 @@ public:
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 
-			//time += 0.1;
+			time += 0.1;
 		}
 	}
 
@@ -135,9 +180,19 @@ public:
 
 	void render() {
 
+
 		glViewport(0, 0, mode->width, mode->height);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//clear texture
+		glBindFramebuffer(GL_FRAMEBUFFER, clearFBO);
+
+		clearShader.use();
+		renderScreenQuad();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
 		//render flame fractal
 
@@ -145,11 +200,14 @@ public:
 		flameShader.setFloat("width", mode->width);
 		flameShader.setFloat("height", mode->height);
 		flameShader.setFloat("time", time);
+		flameShader.setFloatArray("a", parA, 10); flameShader.setFloatArray("b", parB,10); flameShader.setFloatArray("c", parC,10);
+		flameShader.setFloatArray("d", parD, 10); flameShader.setFloatArray("e", parE,10); flameShader.setFloatArray("f", parF,10);
+		flameShader.setFloatArray("w", weights,11);
 
 		glBindImageTexture(0, displayScreenTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
-		unsigned int worksizeX = nextPowerOfTwo(mode->width);
-		unsigned int worksizeY = nextPowerOfTwo(mode->height);
+		unsigned int worksizeX = mode->width;// nextPowerOfTwo(mode->width);
+		unsigned int worksizeY = mode->height;// nextPowerOfTwo(mode->height);
 
 		glDispatchCompute(worksizeX / 32, worksizeY / 32, 1);
 
@@ -161,9 +219,6 @@ public:
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, displayScreenTexture);
-		
-		screenShader.setFloat("width", mode->width);
-		screenShader.setFloat("height", mode->height);
 
 		renderScreenQuad();
 	}

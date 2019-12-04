@@ -200,15 +200,24 @@ public:
 		glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 	}
 
-	int createFrameBufferTexture() {
+	void setFloatArray(const std::string &name, const float arrayF[], int n) {
+		glUniform1fv(glGetUniformLocation(ID, name.c_str()), n, arrayF);
+	}
+
+	int createFrameBufferTexture(int width, int height) {
+
 		unsigned int tex;
 		glGenTextures(1,&tex);
 		glBindTexture(GL_TEXTURE_2D, tex);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1000, 800, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		return tex;
+	}
+
+	void deleteTex(unsigned int tex) {
+		glDeleteTextures(1, &tex);
 	}
 
 

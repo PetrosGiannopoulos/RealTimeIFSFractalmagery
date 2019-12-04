@@ -173,6 +173,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="clearShader.fs" />
+    <None Include="clearShader.vs" />
     <None Include="flameShader.glslcs" />
     <None Include="screenShader.fs" />
     <None Include="screenShader.vs" />
